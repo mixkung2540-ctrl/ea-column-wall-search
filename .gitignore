@@ -1,0 +1,24 @@
+# Generated files
+*.exe
+*.ico
+*.png
+MakeIcon.exe
+
+# Engineering and user data
+*.mdb
+*.accdb
+*.laccdb
+*.easearch
+*.csv
+test-results.txt
+
+# IDE and Windows files
+.vs/
+bin/
+obj/
+*.user
+Thumbs.db
+Desktop.ini
+
+# Keep the approved portable package in the repository
+!release/EA_Search_1.0.2_Portable.zip
