@@ -1,30 +1,26 @@
 # EA Column and Wall Search
 
-Windows desktop utility for preparing ETABS Column and Wall force data from Access databases.
+Windows desktop utility for preparing ETABS Column/Wall force data from Access databases for use in engineering calculation workflows.
 
-Current version: **1.0.2**
+Current release: **1.0.3**
 
-## Download
+## Features
 
-Download [EA_Search_1.0.2_Portable.zip](release/EA_Search_1.0.2_Portable.zip), extract the ZIP, then run `EA_Search_1.0.2.exe`.
+- Imports multiple ETABS Access files for Column or Wall data
+- Supports ETABS 2020, 2016 and 9.7.4 schemas
+- Filters multiple members and storeys
+- Applies PT moment overrides to UDCON1–4
+- Renames output members without changing original matching keys
+- Saves and opens `.easearch` project files
+- Exports CSV or copies seven tab-separated data columns without headers
+- Checks GitHub Releases for updates only when the user clicks **Check Update**
 
-## Main features
+## Build
 
-- Import multiple ETABS Access files
-- Column and Wall modes in one program
-- ETABS 2020, 2016 and 9.7.4 schemas
-- Multiple member and storey selection
-- PT moment overrides for UDCON1 to UDCON4
-- Output name editing
-- Save and open `.easearch` projects
-- CSV export and seven column tab separated Copy Data output
+Run `build.ps1` on 64-bit Windows with .NET Framework 4.x. Runtime Access import also requires the 64-bit Microsoft ACE OLE DB provider.
 
-## Requirements
+The repository contains source code only. Engineering databases, `.easearch` projects, test data and generated executables are excluded. Download the portable build from [GitHub Releases](https://github.com/mixkung2540-ctrl/ea-column-wall-search/releases).
 
-- Windows 64 bit
-- .NET Framework 4.x
-- Microsoft ACE OLE DB provider 64 bit for Access import
+## Important
 
-Run `build.ps1` to compile the source. Full Thai instructions are in `README_TH.txt`.
-
-Engineering databases and project files are excluded from this repository. Users must verify units, signs, load cases, force mapping and results before engineering use.
+This program assists with data preparation. Users must verify units, signs, load cases, force mapping and results before engineering use. See `README_TH.txt` for full Thai instructions.

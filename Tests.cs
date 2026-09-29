@@ -10,7 +10,11 @@ static class Tests {
  static void Check(bool b,string message){if(!b)throw new Exception("FAIL: "+message);}
  static DataTable Sample(string kind){var t=new DataTable();foreach(var c in new[]{"Story","Member","Case","Position","P","M2","M3"})t.Columns.Add(c);foreach(string story in new[]{"SUB-UR","7th-8th Mid Ramp","ชั้น [B-2] / A'B"})foreach(var cas in new[]{"UDCON1","UDCON2","UDCON3","UDCON4","UDCON10"}){t.Rows.Add(story,"W-1",cas,kind=="WALL"?"Bottom":"0","-100","20","30");t.Rows.Add(story,"W-1",cas,kind=="WALL"?"Top":"3","-120","40","50");}return t;}
  public static void Run(string folder){
-  var report=new List<string>();var e=new Engine();e.Sources.Add(new Source{Id="S001",Kind="WALL",Version="2020",Path="synthetic",Data=Sample("WALL")});
+  var report=new List<string>();
+  var release=Updater.Parse("{\"tag_name\":\"v1.2.3\",\"name\":\"EA Search 1.2.3\",\"html_url\":\"https://github.com/mixkung2540-ctrl/ea-column-wall-search/releases/tag/v1.2.3\"}");
+  Check(release.Version==new Version(1,2,3)&&release.Url.EndsWith("/v1.2.3")&&Updater.Current==new Version(1,0,3),"GitHub update metadata");
+  report.Add("PASS updater: repository URL, release JSON and semantic version comparison.");
+  var e=new Engine();e.Sources.Add(new Source{Id="S001",Kind="WALL",Version="2020",Path="synthetic",Data=Sample("WALL")});
   var r=e.Search("WALL",e.Members("WALL"),e.Stories("WALL"));Check(r.Count==15,"normal count");Check(r[0].P==120&&r[0].XT==50&&r[0].YT==40&&r[0].XB==30&&r[0].YB==20,"force mapping");Check(r[4].Case=="UDCON10","natural case sort");
   Check(r[0].Designation=="SUB-UR-W-1-UDCON1","no source ID in designation");
   e.Prepare(r);var p=e.PT.Rows.Find(new object[]{"WALL","SUB-UR"});p[2]=0;p[3]=-200;
@@ -39,7 +43,7 @@ static class Tests {
   bool failed=false;try{real.Import(new[]{Path.Combine(root,names[0]),Path.Combine(root,"missing.accdb")},"WALL","2020");}catch{failed=true;}Check(failed&&real.Sources.Sum(s=>s.Data.Rows.Count)==count,"atomic failed batch");
   failed=false;try{real.Import(new[]{Path.Combine(root,names[3])},"WALL","2020");}catch{failed=true;}Check(failed&&real.Sources.Sum(s=>s.Data.Rows.Count)==count,"wrong type preserved");
   var target=real.Sources.First(s=>s.Kind=="COLUMN"&&s.Version=="2016");var retained=real.Sources.Where(s=>s!=target).Select(s=>s.Data).ToArray();var timer=Stopwatch.StartNew();real.Sources.Remove(target);timer.Stop();Check(real.Sources.All(s=>retained.Contains(s.Data)),"remove preserves retained tables");report.Add("PASS real: six schemas, independent end values, atomic import, reimport, wrong-type rejection, remove retains other tables. Remove core: "+timer.Elapsed.TotalMilliseconds.ToString("0.000")+" ms (UI refresh excluded).");
-  }else report.Add("SKIP real Access tests: set EA_SEARCH_TEST_DATA to a private folder containing the six expected databases.");
+  }else report.Add("SKIP real Access tests: set EA_SEARCH_TEST_DATA to a private test-data folder containing the six expected databases.");
   using(var form=new MainForm()){form.Show();System.Windows.Forms.Application.DoEvents();form.PreviewSample(e,folder);form.Close();}report.Add("PASS UI binding: default Type/Version, PT Story filter, editable PT cell committed to appended results.");
   var namesTable=new DataTable();foreach(string c in new[]{"Source","Original Member","Output Name","Key"})namesTable.Columns.Add(c);
   for(int i=0;i<2000;i++)namesTable.Rows.Add(i%2==0?"S001":"S002","C"+i,"C"+i,"K"+i);

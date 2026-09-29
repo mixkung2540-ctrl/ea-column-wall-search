@@ -24,6 +24,7 @@ static class Theme {
    else if(name.Contains("Append")){g.DrawLine(p,13,3,13,23);g.DrawLine(p,3,13,23,13);}
    else if(name.Contains("Names")){g.DrawRectangle(p,3,5,15,18);g.DrawLine(p,9,17,23,3);g.DrawLine(p,8,18,13,17);}
    else if(name.Contains("Copy")){g.DrawRectangle(p,3,3,14,17);g.DrawRectangle(p,9,8,14,17);}
+   else if(name.Contains("Update")){g.DrawArc(p,3,3,20,20,-65,285);g.DrawLines(p,new[]{new Point(19,2),new Point(23,3),new Point(22,8)});}
    else if(name.Contains("Help")){g.DrawEllipse(p,2,2,22,22);using(var f=new Font("Segoe UI",16,FontStyle.Bold))using(var brush=new SolidBrush(Ink))g.DrawString("?",f,brush,5,-1);}
    else{g.DrawRectangle(p,5,2,16,22);g.DrawLine(p,8,9,18,9);g.DrawLine(p,8,14,18,14);g.DrawLine(p,8,19,16,19);}
   }return image;
@@ -42,13 +43,13 @@ public sealed partial class MainForm {
   AddBlock("DATA && PROJECT",new Control[]{kind,version,buttons[0],buttons[1],buttons[2]},486);
   AddBlock("SEARCH && PT",new Control[]{buttons[3],buttons[4],buttons[5]},307);
   AddBlock("OUTPUT",new Control[]{buttons[6],buttons[7],buttons[8]},307);
-  AddBlock("HELP",new Control[]{buttons[9]},112);
+  AddBlock("UPDATE & HELP",new Control[]{buttons[9],buttons[10]},205);
   foreach(var combo in new[]{kind,version}){combo.DrawMode=DrawMode.OwnerDrawFixed;combo.FlatStyle=FlatStyle.Flat;combo.DrawItem+=(s,e)=>{if(e.Index<0)return;var box=(ComboBox)s;using(var bg=new SolidBrush((e.State&DrawItemState.Selected)!=0?Theme.Accent:Theme.Navy))e.Graphics.FillRectangle(bg,e.Bounds);TextRenderer.DrawText(e.Graphics,box.Items[e.Index].ToString(),box.Font,e.Bounds,Theme.Ink,TextFormatFlags.Left|TextFormatFlags.VerticalCenter);};}
   var menu=new ToolStripMenuItem("File");MenuAction(menu,"Import Access...",Import);MenuAction(menu,"Save project...",Save);MenuAction(menu,"Open project...",Open);MenuAction(menu,"Export CSV...",Export);MenuAction(menu,"Exit",Close);appMenu.Items.Add(menu);
   menu=new ToolStripMenuItem("Edit");MenuAction(menu,"Output Names...",EditNames);MenuAction(menu,"Copy Data",Copy);appMenu.Items.Add(menu);
   menu=new ToolStripMenuItem("Project");MenuAction(menu,"Search",Search);MenuAction(menu,"Prepare PT",Prepare);MenuAction(menu,"Append PT",Append);appMenu.Items.Add(menu);
   menu=new ToolStripMenuItem("View");MenuAction(menu,"Search",()=>tabs.SelectedIndex=0);MenuAction(menu,"PT Override",()=>tabs.SelectedIndex=1);MenuAction(menu,"Imports",()=>tabs.SelectedIndex=2);appMenu.Items.Add(menu);
-  menu=new ToolStripMenuItem("Help");MenuAction(menu,"About",()=>MessageBox.Show("EA Column and Wall Search 1.0.2\nOffline Windows application\nUnits: kN / kNm. Mx=M3, My=M2.\nCheck results and units before engineering use.\nSee README_TH.txt for instructions.","About"));appMenu.Items.Add(menu);
+  menu=new ToolStripMenuItem("Help");MenuAction(menu,"Check for updates...",CheckUpdate);MenuAction(menu,"About",()=>MessageBox.Show("EA Column and Wall Search 1.0.3\nCore functions work offline; Check Update uses GitHub only when clicked.\nUnits: kN / kNm. Mx=M3, My=M2.\nCheck results and units before engineering use.\nSee README_TH.txt for instructions.","About"));appMenu.Items.Add(menu);
   appMenu.BackColor=Theme.Navy;appMenu.ForeColor=Theme.Ink;appMenu.Renderer=new ToolStripProfessionalRenderer(new NavyMenuColors());appMenu.Dock=DockStyle.Top;Controls.Add(appMenu);MainMenuStrip=appMenu;foreach(ToolStripMenuItem top in appMenu.Items){top.ForeColor=Theme.Ink;foreach(ToolStripItem item in top.DropDownItems)item.ForeColor=Theme.Ink;}
   tabs.DrawMode=TabDrawMode.OwnerDrawFixed;tabs.SizeMode=TabSizeMode.Fixed;tabs.ItemSize=new Size(125,30);tabs.DrawItem+=(s,e)=>{using(var bg=new SolidBrush(e.Index==tabs.SelectedIndex?Theme.Accent:Theme.Panel)){e.Graphics.FillRectangle(bg,e.Bounds);TextRenderer.DrawText(e.Graphics,tabs.TabPages[e.Index].Text,Font,e.Bounds,Theme.Ink,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter);}};
   status.BackColor=Theme.Navy;status.ForeColor=Theme.Ink;status.Padding=new Padding(8,4,0,0);
@@ -61,7 +62,7 @@ public sealed partial class MainForm {
   foreach(var list in new[]{members,stories}){list.BorderStyle=BorderStyle.None;list.Resize+=(s,e)=>{var c=(Control)s;if(c.Width<12||c.Height<12)return;using(var path=RoundShape.Path(new RectangleF(0,0,c.Width,c.Height),6)){var prior=c.Region;c.Region=new Region(path);if(prior!=null)prior.Dispose();}};}
   foreach(var box in new[]{memberFilter,storyFilter}){var parent=(TableLayoutPanel)box.Parent;parent.Controls.Remove(box);var frame=new RoundedBlock{Dock=DockStyle.Fill,Padding=new Padding(5,4,5,3),Margin=new Padding(2)};box.BorderStyle=BorderStyle.None;frame.Controls.Add(box);parent.Controls.Add(frame,1,0);}
  }
- void ShowHelp(){MessageBox.Show("EA Column and Wall Search 1.0.2\n\n1. DATA & PROJECT: select Type/Version, Import, Save/Open project.\n2. Select Members and Stories, then Search. Find keeps hidden selections; All/None affects visible items.\n3. SEARCH & PT: Prepare PT, edit, Append PT. Blank = original; 0 = zero.\n4. OUTPUT: change names, Export CSV or Copy Data.\nOutput Names Search matches Source, Original Member and Output Name. Apply includes hidden edits.\nSave project preserves imports, PT and output names.\n\nAssumed units: kN and kNm. Mx=M3, My=M2; P=Abs(min P).\nCheck results and target column layout before engineering use.","EA Search 1.0.2");}
+ void ShowHelp(){MessageBox.Show("EA Column and Wall Search 1.0.3\n\n1. DATA & PROJECT: select Type/Version, Import, Save/Open project.\n2. Select Members and Stories, then Search. Find keeps hidden selections; All/None affects visible items.\n3. SEARCH & PT: Prepare PT, edit, Append PT. Blank = original; 0 = zero.\n4. OUTPUT: change names, Export CSV or Copy Data.\nOutput Names Search matches Source, Original Member and Output Name. Apply includes hidden edits.\nSave project preserves imports, PT and output names.\n\nAssumed units: kN and kNm. Mx=M3, My=M2; P=Abs(min P).\nCheck results and target column layout before engineering use.","EA Search 1.0.3");}
 }
 class NavyMenuColors:ProfessionalColorTable {
  public override Color ToolStripDropDownBackground{get{return Theme.Panel;}}

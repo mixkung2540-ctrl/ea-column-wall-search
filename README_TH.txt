@@ -1,14 +1,14 @@
-EA Column and Wall Search 1.0.2
+EA Column and Wall Search 1.0.3
 แก้ Copy Data: เฉพาะแถวข้อมูล ไม่มีหัวตาราง ไม่มีเครื่องหมายคำพูดครอบค่า ใช้ Tab คั่น 7 คอลัมน์
 ตรรกะ Engine สำหรับ Import/Search/PT/Save/Export ไม่เปลี่ยนจาก 1.0.0
 EA_Search.ico และ EA_Search_Icon.png แนบไว้สำหรับใช้กับ Shortcut หรือเอกสาร
 ===============================
-โปรแกรม Windows ออฟไลน์สำหรับเตรียมข้อมูล Column/Wall จาก ETABS Access
-ไม่มี AI/API และไม่ใช้โทเคนขณะเปิดใช้งาน
+โปรแกรม Windows สำหรับเตรียมข้อมูล Column/Wall จาก ETABS Access โดยฟังก์ชันงานหลักใช้ออฟไลน์ได้
+ไม่มี AI และไม่ใช้โทเคนขณะเปิดใช้งาน; จะเชื่อม GitHub API เฉพาะเมื่อผู้ใช้กด Check Update
 
 เริ่มใช้งาน
 1. Save project ในโปรแกรมรุ่นเก่าก่อนปิด
-2. แตก ZIP แล้วเปิด EA_Search_1.0.2.exe ไม่ต้องเปิด Excel และไม่ต้อง Run as Administrator
+2. แตก ZIP แล้วเปิด EA_Search_1.0.3.exe ไม่ต้องเปิด Excel และไม่ต้อง Run as Administrator
 3. Open project เพื่อเปิด .easearch เดิมจากรุ่น 0.1.x ได้
    แนะนำ Save เป็นชื่อใหม่เพื่อเก็บต้นฉบับ เผื่อต้องย้อนกลับ
 4. ต้องใช้ Windows 64-bit, .NET Framework 4.x และ Access ACE OLEDB 12.0 แบบ 64-bit
@@ -18,8 +18,10 @@ EA_Search.ico และ EA_Search_Icon.png แนบไว้สำหรับ�
 DATA & PROJECT : Type/Version, Import Access, Save project, Open project
 SEARCH & PT    : Search, Prepare PT, Append PT
 OUTPUT         : Output Names, Export CSV, Copy Data
-HELP           : วิธีใช้
+UPDATE & HELP  : ตรวจสอบรุ่นใหม่จาก GitHub และวิธีใช้
 ใช้เมนู File / Edit / Project / View / Help ด้านบนแทนปุ่มได้เช่นกัน
+ปุ่ม Check Update ใช้อินเทอร์เน็ตเฉพาะตอนกด เพื่อตรวจ GitHub Releases หากมีรุ่นใหม่จะเปิดหน้าดาวน์โหลดในเว็บเบราว์เซอร์
+โปรแกรมไม่เก็บ GitHub token และไม่ดาวน์โหลด/ติดตั้งไฟล์ทับโดยอัตโนมัติ
 หากหน้าต่างแคบ ให้ขยายหน้าต่างหรือเลื่อนแถบเมนูแนวนอน
 
 วิธีทำงาน

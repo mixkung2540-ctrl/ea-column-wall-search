@@ -1,8 +1,21 @@
 # Changelog
 
+## 1.0.3
+
+- Added a manual **Check Update** button linked to this repository's GitHub Releases.
+- Kept update checks opt-in; no GitHub token is stored and no executable is replaced automatically.
+- Copy Data remains seven tab-separated data columns with no header row or added quotes.
+- Preserved compatibility with existing `.easearch` projects from 0.1.x.
+
 ## 1.0.2
 
-- Copy Data outputs seven tab separated data columns.
-- Removed the header row and added quotation marks from clipboard output for direct pasting into PROKON.
-- Preserved underscores and original output names.
-- Retained Column and Wall import, search, PT override, project save/open and output name features.
+- Removed the header row and added quotes from Copy Data output for direct pasting into PROKON.
+
+## 1.0.1
+
+- Refined the navy interface, rounded controls and application icon.
+- Added output-name editing and search.
+
+## 1.0.0
+
+- First stable combined Column and Wall release.
