@@ -12,7 +12,7 @@ static class Tests {
  public static void Run(string folder){
   var report=new List<string>();
   var release=Updater.Parse("{\"tag_name\":\"v1.2.3\",\"name\":\"EA Search 1.2.3\",\"html_url\":\"https://github.com/mixkung2540-ctrl/ea-column-wall-search/releases/tag/v1.2.3\"}");
-  Check(release.Version==new Version(1,2,3)&&release.Url.EndsWith("/v1.2.3")&&Updater.Current==new Version(1,0,3),"GitHub update metadata");
+  Check(release.Version==new Version(1,2,3)&&release.Url.EndsWith("/v1.2.3")&&Updater.Current==new Version(1,0,4),"GitHub update metadata");
   report.Add("PASS updater: repository URL, release JSON and semantic version comparison.");
   var e=new Engine();e.Sources.Add(new Source{Id="S001",Kind="WALL",Version="2020",Path="synthetic",Data=Sample("WALL")});
   var r=e.Search("WALL",e.Members("WALL"),e.Stories("WALL"));Check(r.Count==15,"normal count");Check(r[0].P==120&&r[0].XT==50&&r[0].YT==40&&r[0].XB==30&&r[0].YB==20,"force mapping");Check(r[4].Case=="UDCON10","natural case sort");

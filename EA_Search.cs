@@ -12,8 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-[assembly: System.Reflection.AssemblyVersion("1.0.3.0")]
-[assembly: System.Reflection.AssemblyFileVersion("1.0.3.0")]
+[assembly: System.Reflection.AssemblyVersion("1.0.4.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.0.4.0")]
 [assembly: System.Reflection.AssemblyProduct("EA Column and Wall Search")]
 
 namespace EASearch {
@@ -116,7 +116,7 @@ public sealed partial class MainForm:Form {
  DataGridView results=Grid(true),pt=Grid(false);TabControl tabs=new NavyTabs();Label status=new Label();FlowLayoutPanel bar=new FlowLayoutPanel();
  string PTKind="";
  public MainForm(){
-  Text="EA Column and Wall Search 1.0.3";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
+  Text="EA Column and Wall Search 1.0.4";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
   var layout=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=3,ColumnCount=1};layout.RowStyles.Add(new RowStyle(SizeType.Absolute,92));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,32));Controls.Add(layout);
   bar.Dock=DockStyle.Fill;bar.Padding=new Padding(6);layout.Controls.Add(bar,0,0);
   kind.DropDownStyle=version.DropDownStyle=ComboBoxStyle.DropDownList;kind.Items.AddRange(new object[]{"WALL","COLUMN"});version.Items.AddRange(new object[]{"2020","2016","9.7.4"});kind.Width=100;version.Width=100;kind.SelectedIndex=version.SelectedIndex=0;

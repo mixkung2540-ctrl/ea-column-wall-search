@@ -19,3 +19,10 @@
 ## 1.0.0
 
 - First stable combined Column and Wall release.
+## 1.0.4
+
+- Added Clear All beside Member and Story filters, including hidden selections.
+- Added Edit > Clear All Selections for both lists.
+- Kept None visible-only; imported data, names and PT values are not deleted.
+- Added regression tests for filtered None, hidden selections, independent and repeated clearing.
+

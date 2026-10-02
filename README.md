@@ -2,7 +2,7 @@
 
 Windows desktop utility for preparing ETABS Column/Wall force data from Access databases for use in engineering calculation workflows.
 
-Current release: **1.0.3**
+Current release: **1.0.4**
 
 ## Features
 
@@ -24,3 +24,10 @@ The repository contains source code only. Engineering databases, `.easearch` pro
 ## Important
 
 This program assists with data preparation. Users must verify units, signs, load cases, force mapping and results before engineering use. See `README_TH.txt` for full Thai instructions.
+# Version 1.0.4 selection controls
+
+- **None** still clears only visible items in its list.
+- **Clear All** beside each Find box clears all selections in that list, including hidden items. It keeps the Find text and selections in the other list.
+- **Edit > Clear All Selections (including hidden)** clears both Members and Stories.
+- Imported data, output names and saved PT values are retained. Search again after selecting new items.
+
