@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5
+
+- Paste multiple rows and columns of Excel moment values into PT Override with Ctrl+V or Paste PT.
+- Keep original ETABS values for blank cells and preserve explicit zero and negative values.
+- Reject invalid or oversized ranges before changing PT values.
+
 ## 1.0.3
 
 - Added a manual **Check Update** button linked to this repository's GitHub Releases.

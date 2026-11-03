@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
@@ -12,8 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-[assembly: System.Reflection.AssemblyVersion("1.0.4.0")]
-[assembly: System.Reflection.AssemblyFileVersion("1.0.4.0")]
+[assembly: System.Reflection.AssemblyVersion("1.0.5.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.0.5.0")]
 [assembly: System.Reflection.AssemblyProduct("EA Column and Wall Search")]
 
 namespace EASearch {
@@ -113,10 +113,10 @@ public sealed class Engine {
 public sealed partial class MainForm:Form {
  Engine engine=new Engine();List<Result> normal=new List<Result>(),shown=new List<Result>();bool dirty,busy;
  ComboBox kind=new ComboBox(),version=new ComboBox();CheckedListBox members=new CheckedListBox(),stories=new CheckedListBox();ListBox sources=new ListBox();
- DataGridView results=Grid(true),pt=Grid(false);TabControl tabs=new NavyTabs();Label status=new Label();FlowLayoutPanel bar=new FlowLayoutPanel();
+ DataGridView results=Grid(true); PTPasteGrid pt=new PTPasteGrid();TabControl tabs=new NavyTabs();Label status=new Label();FlowLayoutPanel bar=new FlowLayoutPanel();
  string PTKind="";
  public MainForm(){
-  Text="EA Column and Wall Search 1.0.4";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
+  Text="EA Column and Wall Search 1.0.5";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
   var layout=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=3,ColumnCount=1};layout.RowStyles.Add(new RowStyle(SizeType.Absolute,92));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,32));Controls.Add(layout);
   bar.Dock=DockStyle.Fill;bar.Padding=new Padding(6);layout.Controls.Add(bar,0,0);
   kind.DropDownStyle=version.DropDownStyle=ComboBoxStyle.DropDownList;kind.Items.AddRange(new object[]{"WALL","COLUMN"});version.Items.AddRange(new object[]{"2020","2016","9.7.4"});kind.Width=100;version.Width=100;kind.SelectedIndex=version.SelectedIndex=0;
@@ -127,7 +127,11 @@ public sealed partial class MainForm:Form {
   var mb=new FlowLayoutPanel{Dock=DockStyle.Fill};mb.Controls.Add(new Label{Text="Members",AutoSize=true});Button(mb,"All",()=>CheckAll(members,true));Button(mb,"None",()=>CheckAll(members,false));left.Controls.Add(mb,0,0);
   left.Controls.Add(FilterPanel(memberFilter),0,1);members.Dock=DockStyle.Fill;members.CheckOnClick=true;left.Controls.Add(members,0,2);
   var sb=new FlowLayoutPanel{Dock=DockStyle.Fill};sb.Controls.Add(new Label{Text="Stories",AutoSize=true});Button(sb,"All",()=>CheckAll(stories,true));Button(sb,"None",()=>CheckAll(stories,false));left.Controls.Add(sb,0,3);left.Controls.Add(FilterPanel(storyFilter),0,4);stories.Dock=DockStyle.Fill;stories.CheckOnClick=true;left.Controls.Add(stories,0,5);split.Panel2.Controls.Add(results);
-  var ptTab=new TabPage("PT Override");tabs.TabPages.Add(ptTab);ptTab.Controls.Add(pt);var hint=new Label{Dock=DockStyle.Top,Height=46,Text="UDCON1-4 only. Blank = original; 0 = zero. One Story applies to all selected members/sources of the same Type.\nOnly Stories in the last Search appear here. Click Append PT after editing."};ptTab.Controls.Add(hint);
+  var ptTab=new TabPage("PT Override");tabs.TabPages.Add(ptTab);ptTab.Controls.Add(pt);
+  var ptTools=new FlowLayoutPanel{Dock=DockStyle.Top,Height=62,Padding=new Padding(4),WrapContents=false};
+  Button(ptTools,"Paste PT",PastePTFromClipboard);
+  ptTools.Controls.Add(new Label{Width=850,Height=50,Text="Copy moment cells from Excel. Select the first destination cell and press Ctrl+V or click Paste PT.\nUse the grid's Story order. Blank = original ETABS moment; 0 = zero. Click Append PT to apply."});
+  ptTab.Controls.Add(ptTools);pt.PasteRequested=PastePTFromClipboard;
   var importTab=new TabPage("Imports");tabs.TabPages.Add(importTab);sources.Dock=DockStyle.Fill;sources.HorizontalScrollbar=true;importTab.Controls.Add(sources);var actions=new FlowLayoutPanel{Dock=DockStyle.Top,Height=45};Button(actions,"Remove selected source",Remove);Button(actions,"Clear current Type",ClearType);importTab.Controls.Add(actions);
   kind.SelectedIndexChanged+=(s,e)=>{CommitPT();RefreshLists();};members.ItemCheck+=(s,e)=>SelectionChanged(members,e);stories.ItemCheck+=(s,e)=>SelectionChanged(stories,e);
   memberFilter.TextChanged+=(s,e)=>ApplyFilters();storyFilter.TextChanged+=(s,e)=>ApplyFilters();
@@ -139,6 +143,45 @@ public sealed partial class MainForm:Form {
  void Button(Control panel,string text,Action action){var b=new RoundedButton{Text=text,AutoSize=true,Height=32};b.Click+=(s,e)=>{try{action();}catch(Exception ex){MessageBox.Show(ex.Message,"EA Search",MessageBoxButtons.OK,MessageBoxIcon.Warning);}};panel.Controls.Add(b);}
  void CheckAll(CheckedListBox box,bool value){box.BeginUpdate();for(int i=0;i<box.Items.Count;i++)box.SetItemChecked(i,value);box.EndUpdate();}
  void InvalidateResults(){normal.Clear();shown.Clear();results.DataSource=null;pt.DataSource=null;PTKind="";}
+ void PastePTFromClipboard(){
+  try{PastePT(Clipboard.GetText());}
+  catch(Exception ex){MessageBox.Show(this,ex.Message,"Paste PT",MessageBoxButtons.OK,MessageBoxIcon.Warning);}
+ }
+ void PastePT(string text){
+  var start=pt.CurrentCell;
+  if(start==null||start.ReadOnly)throw new Exception("Select the first moment cell in PT Override.");
+  if(string.IsNullOrEmpty(text))throw new Exception("Copy the moment cells from Excel first.");
+  var lines=text.Replace("\r\n","\n").Replace('\r','\n').Split('\n');
+  int rows=lines.Length;
+  if(rows>1 && lines[rows-1]=="")rows--;
+  int width=lines[0].Split('\t').Length;
+  if(rows>pt.Rows.Count-start.RowIndex||width>pt.Columns.Count-start.ColumnIndex)
+   throw new Exception("The copied range does not fit from the selected cell. Copy only moment values and check the Story order.");
+  var edits=new List<KeyValuePair<DataGridViewCell,object>>();
+  for(int r=0;r<rows;r++){
+   var fields=lines[r].Split('\t');
+   if(fields.Length!=width)throw new Exception("Copy a rectangular range of moment cells from Excel.");
+   for(int c=0;c<width;c++){
+    var cell=pt.Rows[start.RowIndex+r].Cells[start.ColumnIndex+c];
+    if(cell.ReadOnly||!cell.Visible)throw new Exception("Paste only into editable moment cells.");
+    string field=fields[c].Trim().Replace('−','-');
+    double value;
+    object parsed=DBNull.Value;
+    if(field.Length!=0){
+     if(!(double.TryParse(field,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.CurrentCulture,out value)||
+          double.TryParse(field,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out value))||
+          double.IsNaN(value)||double.IsInfinity(value))
+      throw new Exception("Invalid moment at copied row "+(r+1)+", column "+(c+1)+". Paste numbers or blanks only.");
+     parsed=value;
+    }
+    edits.Add(new KeyValuePair<DataGridViewCell,object>(cell,parsed));
+   }
+  }
+  CommitPT();
+  foreach(var edit in edits)edit.Key.Value=edit.Value;
+  CommitPT();dirty=true;
+  status.Text="Pasted "+rows+" row(s) × "+width+" moment column(s). Check Story order, then click Append PT.";
+ }
  void CommitPT(){if(pt.DataSource!=null){if(!pt.EndEdit())throw new Exception("Finish the PT number edit first.");BindingContext[pt.DataSource].EndCurrentEdit();}}
  async void Run(string message,Action work,Action done){if(busy)return;busy=true;bar.Enabled=tabs.Enabled=appMenu.Enabled=false;status.Text=message;var sw=System.Diagnostics.Stopwatch.StartNew();try{await Task.Run(work);done();status.Text+=" | "+sw.Elapsed.TotalSeconds.ToString("0.00")+" s";}catch(Exception ex){status.Text="Failed: "+ex.Message;MessageBox.Show(ex.Message,"EA Search",MessageBoxButtons.OK,MessageBoxIcon.Warning);}finally{busy=false;bar.Enabled=tabs.Enabled=appMenu.Enabled=true;}}
  void RefreshLists(){InvalidateResults();selectedMembers.Clear();selectedStories.Clear();allMembers=engine.Members(kind.Text);allStories=engine.Stories(kind.Text);sources.Items.Clear();sources.Items.AddRange(engine.Sources.Cast<object>().ToArray());ApplyFilters();status.Text=engine.Sources.Sum(s=>s.Data.Rows.Count).ToString("N0")+" imported rows | Select members and Stories";}
@@ -157,8 +200,31 @@ public sealed partial class MainForm:Form {
   if(kind.Text!="WALL"||version.Text!="2020")throw new Exception("UI default selector failure");
   engine=sample;RefreshLists();CheckAll(members,true);CheckAll(stories,true);VerifyFiltersAndNames();normal=engine.Search(kind.Text,allMembers.Where(m=>selectedMembers.Contains(m.Key)).ToList(),allStories.Where(s=>selectedStories.Contains(s)).ToList());shown=new List<Result>(normal);ShowResults();Prepare();
   if(pt.Rows.Count!=3)throw new Exception("PT grid Story filter failure");
-  pt.Rows[0].Cells[2].Value=123.0;CommitPT();Append();if(shown[normal.Count].XT!=123)throw new Exception("PT grid commit failure");
+  pt.CurrentCell=pt.Rows[0].Cells[2];
+  PastePT("123\t-8.5\t0\t\r\n-45\t6.25\t\t9\r\n");
+  if(Convert.ToDouble(pt.Rows[0].Cells[3].Value)!=-8.5||Convert.ToDouble(pt.Rows[0].Cells[4].Value)!=0||
+     pt.Rows[0].Cells[5].Value!=DBNull.Value||Convert.ToDouble(pt.Rows[1].Cells[2].Value)!=-45)
+   throw new Exception("PT paste lost signs, zero, blanks, or row order");
+  bool bad=false;
+  try{PastePT("77\tinvalid");}catch(Exception){bad=true;}
+  if(!bad||Convert.ToDouble(pt.Rows[0].Cells[2].Value)!=123)throw new Exception("Invalid PT paste changed valid cells");
+  bad=false;
+  try{PastePT("1\t2\t3\t4\t5");}catch(Exception){bad=true;}
+  if(!bad)throw new Exception("Out-of-bounds PT paste accepted");
+  Append();if(shown[normal.Count].XT!=123||shown[normal.Count].YT!=-8.5||shown[normal.Count].XB!=0||
+     shown[normal.Count].YB!=normal[0].YB)throw new Exception("Pasted PT values did not reach appended results");
   foreach(int tab in new[]{0,1,2}){tabs.SelectedIndex=tab;Application.DoEvents();using(var bitmap=new Bitmap(Width,Height)){DrawToBitmap(bitmap,new Rectangle(0,0,Width,Height));bitmap.Save(System.IO.Path.Combine(folder,"preview-"+tab+".png"));}}dirty=false;
+ }
+}
+sealed class PTPasteGrid:DataGridView {
+ public Action PasteRequested;
+ public PTPasteGrid(){
+  Dock=DockStyle.Fill;AllowUserToAddRows=false;AllowUserToDeleteRows=false;
+  RowHeadersVisible=false;SelectionMode=DataGridViewSelectionMode.CellSelect;
+ }
+ protected override bool ProcessCmdKey(ref Message msg,Keys keyData){
+  if(keyData==(Keys.Control|Keys.V)&&!IsCurrentCellInEditMode&&PasteRequested!=null){PasteRequested();return true;}
+  return base.ProcessCmdKey(ref msg,keyData);
  }
 }
 static class Program {

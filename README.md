@@ -31,3 +31,7 @@ This program assists with data preparation. Users must verify units, signs, load
 - **Edit > Clear All Selections (including hidden)** clears both Members and Stories.
 - Imported data, output names and saved PT values are retained. Search again after selecting new items.
 
+
+### Paste PT (1.0.5)
+
+After Prepare PT, copy the moment cells in Excel, select the first destination cell in PT Override, then press Ctrl+V or click Paste PT. Check the Story order and click Append PT. Blank retains the original ETABS moment; zero is an explicit override.

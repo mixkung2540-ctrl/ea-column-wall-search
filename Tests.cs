@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Drawing;
 using System.IO;
@@ -12,7 +12,7 @@ static class Tests {
  public static void Run(string folder){
   var report=new List<string>();
   var release=Updater.Parse("{\"tag_name\":\"v1.2.3\",\"name\":\"EA Search 1.2.3\",\"html_url\":\"https://github.com/mixkung2540-ctrl/ea-column-wall-search/releases/tag/v1.2.3\"}");
-  Check(release.Version==new Version(1,2,3)&&release.Url.EndsWith("/v1.2.3")&&Updater.Current==new Version(1,0,4),"GitHub update metadata");
+  Check(release.Version==new Version(1,2,3)&&release.Url.EndsWith("/v1.2.3")&&Updater.Current==new Version(1,0,5),"GitHub update metadata");
   report.Add("PASS updater: repository URL, release JSON and semantic version comparison.");
   var e=new Engine();e.Sources.Add(new Source{Id="S001",Kind="WALL",Version="2020",Path="synthetic",Data=Sample("WALL")});
   var r=e.Search("WALL",e.Members("WALL"),e.Stories("WALL"));Check(r.Count==15,"normal count");Check(r[0].P==120&&r[0].XT==50&&r[0].YT==40&&r[0].XB==30&&r[0].YB==20,"force mapping");Check(r[4].Case=="UDCON10","natural case sort");
@@ -44,7 +44,7 @@ static class Tests {
   failed=false;try{real.Import(new[]{Path.Combine(root,names[3])},"WALL","2020");}catch{failed=true;}Check(failed&&real.Sources.Sum(s=>s.Data.Rows.Count)==count,"wrong type preserved");
   var target=real.Sources.First(s=>s.Kind=="COLUMN"&&s.Version=="2016");var retained=real.Sources.Where(s=>s!=target).Select(s=>s.Data).ToArray();var timer=Stopwatch.StartNew();real.Sources.Remove(target);timer.Stop();Check(real.Sources.All(s=>retained.Contains(s.Data)),"remove preserves retained tables");report.Add("PASS real: six schemas, independent end values, atomic import, reimport, wrong-type rejection, remove retains other tables. Remove core: "+timer.Elapsed.TotalMilliseconds.ToString("0.000")+" ms (UI refresh excluded).");
   }else report.Add("SKIP real Access tests: set EA_SEARCH_TEST_DATA to a private test-data folder containing the six expected databases.");
-  using(var form=new MainForm()){form.Show();System.Windows.Forms.Application.DoEvents();form.PreviewSample(e,folder);form.Close();}report.Add("PASS UI binding: default Type/Version, PT Story filter, editable PT cell committed to appended results.");
+  using(var form=new MainForm()){form.Show();System.Windows.Forms.Application.DoEvents();form.PreviewSample(e,folder);form.Close();}report.Add("PASS UI binding: default Type/Version, PT Story filter, multi-row PT paste committed to appended results; signs, blanks, zero and invalid/overflow rejection.");
   var namesTable=new DataTable();foreach(string c in new[]{"Source","Original Member","Output Name","Key"})namesTable.Columns.Add(c);
   for(int i=0;i<2000;i++)namesTable.Rows.Add(i%2==0?"S001":"S002","C"+i,"C"+i,"K"+i);
   namesTable.Rows[0][2]="ชั้น [B-2] / A'B %*";bool applied=false;
