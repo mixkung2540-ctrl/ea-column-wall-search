@@ -2,7 +2,9 @@
 
 Windows desktop utility for preparing ETABS Column/Wall force data from Access databases for use in engineering calculation workflows.
 
-Current release: **1.0.4**
+Current release: **1.1**
+
+Members show `Original [Source] (Output)`. Use **Sort Original**, **Sort Output**, or **Renamed** in Members and Output Names. In Members, click the first checkbox then Shift-click another to check or uncheck a visible range. Existing 1.0.5 features, including Excel paste into PT Override, remain available.
 
 ## Features
 

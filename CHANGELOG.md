@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1
+
+- Show the original member, source ID and output mark in the Members list.
+- Sort by Original or Output name and filter to Renamed only in Members and Output Names.
+- Shift-click to check or uncheck a visible range.
+- Retain 1.0.5 Excel PT paste, existing project compatibility, and visible-only None versus Clear All.
+
 ## 1.0.5
 
 - Paste multiple rows and columns of Excel moment values into PT Override with Ctrl+V or Paste PT.

@@ -12,8 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-[assembly: System.Reflection.AssemblyVersion("1.0.5.0")]
-[assembly: System.Reflection.AssemblyFileVersion("1.0.5.0")]
+[assembly: System.Reflection.AssemblyVersion("1.1.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("1.1.0.0")]
 [assembly: System.Reflection.AssemblyProduct("EA Column and Wall Search")]
 
 namespace EASearch {
@@ -23,9 +23,9 @@ public sealed class Source {
  public override string ToString(){return Id+" | "+Kind+" | "+Version+" | "+System.IO.Path.GetFileName(Path)+" | "+Data.Rows.Count.ToString("N0")+" rows";}
 }
 public sealed class Member {
- public string SourceId, Name;
+ public string SourceId, Name, OutputName;
  public string Key {get{return Engine.Key(SourceId,Name);}}
- public override string ToString(){return Name+" ["+SourceId+"]";}
+ public override string ToString(){return Name+" ["+SourceId+"] ("+(string.IsNullOrEmpty(OutputName)?Name:OutputName)+")";}
 }
 public sealed class Result {
  public string Kind, Story, SourceId, Member, Case, Designation;
@@ -43,6 +43,7 @@ public sealed class Engine {
  public DataTable PT=NewPT();
  public int NextId=1, Skipped;
  public static string Key(params string[] s){return string.Concat(s.Select(x=>x.Length+":"+x));}
+ public static string NaturalKey(string s){return Regex.Replace(s??"",@"\d+",m=>m.Value.Length.ToString("000")+m.Value);}
  public static string S(object x){return Convert.ToString(x,CultureInfo.InvariantCulture).Trim();}
  public static double N(object x){double n;if(x==DBNull.Value||!double.TryParse(S(x),NumberStyles.Float,CultureInfo.InvariantCulture,out n)||double.IsInfinity(n)||double.IsNaN(n))throw new Exception("Invalid numeric input: "+S(x));return n;}
  public static DataTable NewPT(){var t=new DataTable("PT");t.Columns.Add("Type");t.Columns.Add("Story");foreach(var c in new[]{"Mx top","My top","Mx bot","My bot"})t.Columns.Add(c,typeof(double));t.PrimaryKey=new[]{t.Columns[0],t.Columns[1]};return t;}
@@ -63,7 +64,7 @@ public sealed class Engine {
   var pending=paths.Distinct(StringComparer.OrdinalIgnoreCase).Select(p=>new Source{Path=System.IO.Path.GetFullPath(p),Kind=kind,Version=version,Data=Read(p,kind,version)}).ToList();
   foreach(var s in pending){var old=Sources.FirstOrDefault(x=>x.Kind==kind&&string.Equals(x.Path,s.Path,StringComparison.OrdinalIgnoreCase));s.Id=old==null?"S"+(NextId++).ToString("000"):old.Id;if(old!=null)Sources.Remove(old);Sources.Add(s);}
  }
- public List<Member> Members(string kind){return Sources.Where(s=>s.Kind==kind).SelectMany(s=>s.Data.AsEnumerable().Select(r=>S(r[1])).Distinct().Select(n=>new Member{SourceId=s.Id,Name=n})).ToList();}
+ public List<Member> Members(string kind){return Sources.Where(s=>s.Kind==kind).SelectMany(s=>s.Data.AsEnumerable().Select(r=>S(r[1])).Distinct().Select(n=>new Member{SourceId=s.Id,Name=n,OutputName=OutputName(s.Id,n)})).ToList();}
  public List<string> Stories(string kind){return Sources.Where(s=>s.Kind==kind).SelectMany(s=>s.Data.AsEnumerable().Select(r=>S(r[0]))).Distinct().ToList();}
  public List<Result> Search(string kind,List<Member> members,List<string> stories){
   if(members.Count==0||stories.Count==0)throw new Exception("Select at least one member and one Story.");
@@ -116,15 +117,15 @@ public sealed partial class MainForm:Form {
  DataGridView results=Grid(true); PTPasteGrid pt=new PTPasteGrid();TabControl tabs=new NavyTabs();Label status=new Label();FlowLayoutPanel bar=new FlowLayoutPanel();
  string PTKind="";
  public MainForm(){
-  Text="EA Column and Wall Search 1.0.5";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
+  Text="EA Column and Wall Search 1.1";Width=1350;Height=860;MinimumSize=new Size(1100,700);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;
   var layout=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=3,ColumnCount=1};layout.RowStyles.Add(new RowStyle(SizeType.Absolute,92));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,32));Controls.Add(layout);
   bar.Dock=DockStyle.Fill;bar.Padding=new Padding(6);layout.Controls.Add(bar,0,0);
   kind.DropDownStyle=version.DropDownStyle=ComboBoxStyle.DropDownList;kind.Items.AddRange(new object[]{"WALL","COLUMN"});version.Items.AddRange(new object[]{"2020","2016","9.7.4"});kind.Width=100;version.Width=100;kind.SelectedIndex=version.SelectedIndex=0;
   bar.Controls.Add(kind);bar.Controls.Add(version);Button(bar,"Import Access...",Import);Button(bar,"Save project...",Save);Button(bar,"Open project...",Open);Button(bar,"Search",Search);Button(bar,"Prepare PT",Prepare);Button(bar,"Append PT",Append);Button(bar,"Output Names...",EditNames);Button(bar,"Export CSV...",Export);Button(bar,"Copy Data",Copy);Button(bar,"Check Update",CheckUpdate);Button(bar,"Help",ShowHelp);
   tabs.Dock=DockStyle.Fill;layout.Controls.Add(tabs,0,1);status.Dock=DockStyle.Fill;status.Text="Ready | Offline | Assumed units: kN, kNm | Mx=M3 / My=M2";layout.Controls.Add(status,0,2);
-  var search=new TabPage("Search");tabs.TabPages.Add(search);var split=new SplitContainer{Dock=DockStyle.Fill,FixedPanel=FixedPanel.Panel1};search.Controls.Add(split);Shown+=(s,e)=>{split.SplitterDistance=300;};
-  var left=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=6};left.RowStyles.Add(new RowStyle(SizeType.Absolute,40));left.RowStyles.Add(new RowStyle(SizeType.Absolute,34));left.RowStyles.Add(new RowStyle(SizeType.Percent,55));left.RowStyles.Add(new RowStyle(SizeType.Absolute,40));left.RowStyles.Add(new RowStyle(SizeType.Absolute,34));left.RowStyles.Add(new RowStyle(SizeType.Percent,45));split.Panel1.Controls.Add(left);
-  var mb=new FlowLayoutPanel{Dock=DockStyle.Fill};mb.Controls.Add(new Label{Text="Members",AutoSize=true});Button(mb,"All",()=>CheckAll(members,true));Button(mb,"None",()=>CheckAll(members,false));left.Controls.Add(mb,0,0);
+  var search=new TabPage("Search");tabs.TabPages.Add(search);var split=new SplitContainer{Dock=DockStyle.Fill,FixedPanel=FixedPanel.Panel1};search.Controls.Add(split);Shown+=(s,e)=>{split.SplitterDistance=330;};
+  var left=new TableLayoutPanel{Dock=DockStyle.Fill,RowCount=6};left.RowStyles.Add(new RowStyle(SizeType.Absolute,76));left.RowStyles.Add(new RowStyle(SizeType.Absolute,34));left.RowStyles.Add(new RowStyle(SizeType.Percent,55));left.RowStyles.Add(new RowStyle(SizeType.Absolute,40));left.RowStyles.Add(new RowStyle(SizeType.Absolute,34));left.RowStyles.Add(new RowStyle(SizeType.Percent,45));split.Panel1.Controls.Add(left);
+  var mb=new FlowLayoutPanel{Dock=DockStyle.Fill};mb.Controls.Add(new Label{Text="Members",AutoSize=true,Margin=new Padding(3,7,3,0)});Button(mb,"All",()=>CheckAll(members,true));Button(mb,"None",()=>CheckAll(members,false));InitMemberTools(mb);left.Controls.Add(mb,0,0);
   left.Controls.Add(FilterPanel(memberFilter),0,1);members.Dock=DockStyle.Fill;members.CheckOnClick=true;left.Controls.Add(members,0,2);
   var sb=new FlowLayoutPanel{Dock=DockStyle.Fill};sb.Controls.Add(new Label{Text="Stories",AutoSize=true});Button(sb,"All",()=>CheckAll(stories,true));Button(sb,"None",()=>CheckAll(stories,false));left.Controls.Add(sb,0,3);left.Controls.Add(FilterPanel(storyFilter),0,4);stories.Dock=DockStyle.Fill;stories.CheckOnClick=true;left.Controls.Add(stories,0,5);split.Panel2.Controls.Add(results);
   var ptTab=new TabPage("PT Override");tabs.TabPages.Add(ptTab);ptTab.Controls.Add(pt);
@@ -140,8 +141,8 @@ public sealed partial class MainForm:Form {
   InstallTheme(layout);
  }
  static DataGridView Grid(bool read){return new DataGridView{Dock=DockStyle.Fill,ReadOnly=read,AllowUserToAddRows=false,AllowUserToDeleteRows=false,AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.None,BackgroundColor=Color.White,RowHeadersVisible=false,SelectionMode=DataGridViewSelectionMode.CellSelect};}
- void Button(Control panel,string text,Action action){var b=new RoundedButton{Text=text,AutoSize=true,Height=32};b.Click+=(s,e)=>{try{action();}catch(Exception ex){MessageBox.Show(ex.Message,"EA Search",MessageBoxButtons.OK,MessageBoxIcon.Warning);}};panel.Controls.Add(b);}
- void CheckAll(CheckedListBox box,bool value){box.BeginUpdate();for(int i=0;i<box.Items.Count;i++)box.SetItemChecked(i,value);box.EndUpdate();}
+ Button Button(Control panel,string text,Action action){var b=new RoundedButton{Text=text,AutoSize=true,Height=32};b.Click+=(s,e)=>{try{action();}catch(Exception ex){MessageBox.Show(ex.Message,"EA Search",MessageBoxButtons.OK,MessageBoxIcon.Warning);}};panel.Controls.Add(b);return b;}
+ void CheckAll(CheckedListBox box,bool value){bulkChecking=true;box.BeginUpdate();try{for(int i=0;i<box.Items.Count;i++)box.SetItemChecked(i,value);if(box==members)lastMemberIndex=-1;else if(box==stories)lastStoryIndex=-1;}finally{box.EndUpdate();bulkChecking=false;}}
  void InvalidateResults(){normal.Clear();shown.Clear();results.DataSource=null;pt.DataSource=null;PTKind="";}
  void PastePTFromClipboard(){
   try{PastePT(Clipboard.GetText());}
