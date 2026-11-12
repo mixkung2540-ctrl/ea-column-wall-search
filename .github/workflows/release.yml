@@ -20,11 +20,12 @@ jobs:
           $p = Start-Process $exe.FullName -ArgumentList '--test', "$pwd/qa" -Wait -PassThru -WindowStyle Hidden
           Get-Content qa/test-results.txt
           if ($p.ExitCode -ne 0) { throw 'Tests failed' }
-          Compress-Archive -Path $exe.FullName,README_TH.txt,README.md,CHANGELOG.md -DestinationPath EA_Search_1.1_Portable.zip
+          Compress-Archive -Path $exe.FullName,EA_Search.ico,README_TH.txt,README.md,CHANGELOG.md -DestinationPath EA_Search_1.1_Portable.zip
       - name: Release
         shell: powershell
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if (gh release view v1.1 --json tagName 2>$null) { exit 0 }
           gh release create v1.1 EA_Search_1.1_Portable.zip EA_Search_1.1.exe --target $env:GITHUB_SHA --latest --title 'EA Column and Wall Search 1.1' --notes 'Shows output marks in Members; adds Original/Output sorting and Renamed-only filters to Members and Output Names; adds Shift-click range selection. Retains 1.0.5 features, including Excel PT paste and existing project compatibility.'
           if ($LASTEXITCODE -ne 0) { throw 'Release failed' }
